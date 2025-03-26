@@ -21,12 +21,12 @@ def create_app():
         SESSION_COOKIE_SECURE=True,
         SESSION_COOKIE_SAMESITE='None',
         SESSION_COOKIE_HTTPONLY=True,
-        GOOGLE_CLIENT_ID=os.environ.get('GOOGLE_CLIENT_ID'),  # Load from env
-        GOOGLE_CLIENT_SECRET=os.environ.get('GOOGLE_CLIENT_SECRET'),  # Load from env
-        GOOGLE_REDIRECT_URI='http://localhost:5000/oauth2callback'  # This can stay hardcoded if it's not sensitive
+        GOOGLE_CLIENT_ID=os.environ.get('GOOGLE_CLIENT_ID'),
+        GOOGLE_CLIENT_SECRET=os.environ.get('GOOGLE_CLIENT_SECRET'),
+        GOOGLE_REDIRECT_URI='http://localhost:5000/oauth2callback'  # Update for prod if needed
     )
 
-    # Configure CORS with all necessary settings
+    # Configure CORS
     CORS(app, 
          resources={r"/*": {
              "origins": [
@@ -72,9 +72,12 @@ def create_app():
     
     return app
 
-# Create the app instance for Gunicorn
+# Vercel serverless handler
 app = create_app()
 
 if __name__ == '__main__':
     port = int(os.environ.get('PORT', 5000))
     app.run(host='0.0.0.0', port=port, debug=True)
+else:
+    from vercel_wsgi import Vercel
+    handler = Vercel(app)
