@@ -11,6 +11,7 @@ from flask_migrate import Migrate
 from sqlalchemy import Text
 from sqlalchemy.dialects import postgresql
 from models import User
+import serverless_wsgi
 
 def create_app():
     app = Flask(__name__)
@@ -23,7 +24,7 @@ def create_app():
         SESSION_COOKIE_HTTPONLY=True,
         GOOGLE_CLIENT_ID=os.environ.get('GOOGLE_CLIENT_ID'),
         GOOGLE_CLIENT_SECRET=os.environ.get('GOOGLE_CLIENT_SECRET'),
-        GOOGLE_REDIRECT_URI='http://localhost:5000/oauth2callback'  # Update for prod if needed
+        GOOGLE_REDIRECT_URI='https://xavier-back.vercel.app/oauth2callback'  # Updated for Vercel
     )
 
     # Configure CORS
@@ -72,12 +73,13 @@ def create_app():
     
     return app
 
-# Vercel serverless handler
+# Create the app instance
 app = create_app()
+
+# Serverless handler for Vercel
+def handler(environ, start_response):
+    return serverless_wsgi.handle_request(app, environ, start_response)
 
 if __name__ == '__main__':
     port = int(os.environ.get('PORT', 5000))
     app.run(host='0.0.0.0', port=port, debug=True)
-else:
-    from vercel_wsgi import Vercel
-    handler = Vercel(app)
